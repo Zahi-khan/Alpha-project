@@ -1,0 +1,1 @@
+import SiteNav from "../components/navigation/SiteNav"; import Footer from "../components/navigation/Footer"; export default function MarketingLayout({children}){return <><SiteNav/>{children}<Footer/></>}

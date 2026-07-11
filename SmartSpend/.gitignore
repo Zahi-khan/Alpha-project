@@ -1,0 +1,17 @@
+# Python
+smartspend-core/.venv/
+__pycache__/
+*.pyc
+
+# Environment
+.env
+
+# VS Code
+.vscode/
+
+# macOS
+.DS_Store
+
+# Node
+smartspend-web/node_modules/
+dist/

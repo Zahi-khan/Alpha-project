@@ -1,0 +1,1 @@
+.nav{position:sticky;top:76px;z-index:5;display:flex;gap:var(--space-4);overflow:auto;padding:var(--space-3) 0;background:rgba(231,232,231,.9);border-bottom:1px solid var(--color-border-subtle);font-size:.88rem;color:var(--color-text-secondary)}.nav a{white-space:nowrap}.nav a:hover{color:var(--color-text-primary)}

@@ -1,0 +1,4 @@
+import { useEffect } from "react";
+import { useLocation } from "react-router-dom";
+
+export default function ScrollReveal(){const { pathname }=useLocation();useEffect(()=>{document.body.classList.add("revealReady");const observer=new IntersectionObserver(entries=>entries.forEach(entry=>{if(entry.isIntersecting){entry.target.classList.add("revealed");observer.unobserve(entry.target)}}),{threshold:.12});const observeTargets=()=>document.querySelectorAll("main > *, [data-reveal]").forEach(target=>{if(!target.dataset.reveal)target.dataset.reveal="";if(!target.classList.contains("revealed"))observer.observe(target)});observeTargets();const mutations=new MutationObserver(observeTargets);mutations.observe(document.body,{childList:true,subtree:true});return()=>{observer.disconnect();mutations.disconnect()}},[pathname]);return null}

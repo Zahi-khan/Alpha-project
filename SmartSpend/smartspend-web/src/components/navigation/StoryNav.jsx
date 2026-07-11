@@ -1,0 +1,2 @@
+import { Link } from "react-router-dom"; import styles from "./StoryNav.module.css";
+export default function StoryNav({sessionId}){return <nav className={styles.nav} aria-label="Financial story"><a href="#snapshot">Snapshot</a><a href="#spending">Spending</a><a href="#patterns">Patterns</a><a href="#attention">Attention</a><a href="#next-steps">Next steps</a><Link to={`/session/${sessionId}/transactions`}>Explore</Link></nav>}

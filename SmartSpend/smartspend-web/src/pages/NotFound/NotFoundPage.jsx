@@ -1,0 +1,1 @@
+import { Link } from "react-router-dom"; export default function NotFoundPage(){return <main className="container page"><h1 className="h1">Page not found</h1><p>That private session may have expired.</p><Link to="/">Return home</Link></main>}

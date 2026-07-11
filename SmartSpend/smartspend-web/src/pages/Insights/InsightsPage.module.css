@@ -1,0 +1,1 @@
+.page{display:grid;gap:var(--space-5)}.page>a{color:var(--color-accent-primary);font-weight:650}.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:var(--space-4)}@media(max-width:800px){.grid{grid-template-columns:1fr}}

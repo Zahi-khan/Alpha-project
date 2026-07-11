@@ -1,0 +1,2 @@
+import { Link } from "react-router-dom"; import Card from "./Card"; import styles from "./InsightCard.module.css";
+export default function InsightCard({ insight, sessionId }) { return <Card className={`${styles.card} ${styles[insight.tone] ?? ""}`}><div><span>{insight.type.replaceAll("_"," ")}</span><strong>{insight.primary_metric}</strong></div><h3>{insight.title}</h3><p>{insight.summary}</p><small>{insight.confidence_label}</small><Link className="focus" to={`/session/${sessionId}/explanations/${insight.id}`}>See why</Link></Card>; }

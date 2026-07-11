@@ -1,0 +1,2 @@
+import { Link } from "react-router-dom"; import styles from "./Footer.module.css";
+export default function Footer(){return <footer className={styles.footer}><div className={`container ${styles.inner}`}><div><strong>RK SmartSpend</strong><p>Made with love and care, respecting your privacy.</p></div><nav><Link to="/about">About</Link><Link to="/upload">Statement Analysis</Link><Link to="/privacy">Privacy Policy</Link></nav></div></footer>}

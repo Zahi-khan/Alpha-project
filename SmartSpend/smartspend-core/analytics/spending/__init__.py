@@ -1,0 +1,1 @@
+"""Spending-distribution interpretation modules."""
