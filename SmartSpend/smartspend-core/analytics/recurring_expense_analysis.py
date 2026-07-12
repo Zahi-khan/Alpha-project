@@ -22,7 +22,7 @@ class RecurringExpenseAnalysis:
             if not row.group or row.group.count("|") < 2 or not isinstance(row.values.get("sum"), Decimal):
                 continue
             merchant, category, _month = row.group.rsplit("|", 2)
-            if not is_essential_category(category):
+            if category.casefold() not in {"uncategorized", "unknown"} and not is_essential_category(category):
                 grouped[(merchant, category)].append(abs(row.values["sum"]))
         recurring = [(merchant, category, values) for (merchant, category), values in grouped.items() if len(values) >= 2]
         if not recurring:

@@ -40,7 +40,12 @@ def dataframe_to_transactions(df: pd.DataFrame):
         except (InvalidOperation, ValueError):
             continue
         try:
-            transaction_date = pd.to_datetime(row["date"], errors="raise").to_pydatetime()
+            date_value = str(row["date"]).strip()
+            transaction_date = (
+                pd.to_datetime(date_value, format="%d.%m.%Y", errors="raise")
+                if date_value.count(".") == 2
+                else pd.to_datetime(date_value, errors="raise")
+            ).to_pydatetime()
         except (TypeError, ValueError):
             continue
 

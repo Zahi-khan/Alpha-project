@@ -8,6 +8,15 @@ from models.category import Category
 
 
 class CategoryResolutionStage(EnrichmentStage):
+    _FALLBACK_CATEGORIES = (
+        ("Shopping", ("MYNTRA", "MEESHO", "AMAZON", "FLIPKART", "MARKET 99", "RELIANCE DIGITAL", "CROMA")),
+        ("Food", ("SWIGGY", "ZOMATO", "PABBAS", "CAFE", "RESTAURANT", "FIZA")),
+        ("Fuel", ("PETROL", "FUEL")),
+        ("Mobile and utilities", ("JIO", "AIRTEL", "ELECTRICITY", "WATER BILL", "GAS")),
+        ("Investment", ("MUTUAL FUND", "WEALTH MANAGEMENT", "SIP")),
+        ("Subscription", ("NETFLIX", "SPOTIFY", "GOOGLE ONE", "CHATGPT")),
+    )
+
     def enrich(self, context: EnrichmentContext) -> EnrichmentContext:
         supplied_category = str(context.transaction.metadata.get("category", "")).strip()
         if supplied_category:
@@ -26,16 +35,33 @@ class CategoryResolutionStage(EnrichmentStage):
             )
             return context
         merchant = context.resolved_merchant
-        if merchant is None or merchant.category is None:
-            return context
-        context.resolved_category = merchant.category
-        context.add_evidence(
-            Evidence(
-                EvidenceType.CATEGORY_LINK,
-                f'Merchant "{merchant.canonical_name}" links to "{merchant.category.name}".',
-                source="merchant_knowledge",
+        if merchant is not None and merchant.category is not None:
+            context.resolved_category = merchant.category
+            context.add_evidence(
+                Evidence(
+                    EvidenceType.CATEGORY_LINK,
+                    f'Merchant "{merchant.canonical_name}" links to "{merchant.category.name}".',
+                    source="merchant_knowledge",
+                )
             )
-        )
+            return context
+        raw = f"{context.transaction.description} {context.transaction.metadata.get('description', '')}".upper()
+        for name, keywords in self._FALLBACK_CATEGORIES:
+            if any(keyword in raw for keyword in keywords):
+                context.resolved_category = Category(
+                    id=f"inferred_category:{_identifier(name)}",
+                    name=name,
+                    metadata={"source": "keyword_fallback"},
+                )
+                context.add_evidence(
+                    Evidence(
+                        EvidenceType.CATEGORY_LINK,
+                        f'Keywords in the statement indicate "{name}".',
+                        source="keyword_fallback",
+                        score=0.65,
+                    )
+                )
+                return context
         return context
 
 

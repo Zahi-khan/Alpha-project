@@ -18,7 +18,11 @@ class SavingsOpportunityAnalysis:
         rows = [row for row in context.query_result.rows if row.group and isinstance(row.values.get("sum"), Decimal)]
         if not rows:
             return
-        discretionary = [row for row in rows if not is_essential_category(str(row.group))]
+        discretionary = [
+            row for row in rows
+            if str(row.group).casefold() not in {"uncategorized", "unknown"}
+            and not is_essential_category(str(row.group))
+        ]
         if not discretionary:
             return
         top = min(discretionary, key=lambda row: row.values["sum"])
