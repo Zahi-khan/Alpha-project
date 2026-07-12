@@ -13,7 +13,7 @@ from application.workflows.generate_report import GenerateReportWorkflow
 from application.workflows.finalize_session import FinalizeSessionWorkflow
 
 router = APIRouter(prefix="/sessions", tags=["sessions"])
-MAX_UPLOAD_BYTES = 10 * 1024 * 1024
+MAX_UPLOAD_BYTES = 50 * 1024 * 1024
 
 
 @router.post("")
@@ -121,11 +121,11 @@ def delete_session(session_id: str, manager=Depends(get_session_manager)):
 
 async def _read_upload(file: UploadFile) -> tuple[bytes, str]:
     filename = Path(file.filename or "").name
-    if not filename.lower().endswith(".csv"):
-        raise HTTPException(status_code=400, detail="Only CSV files are supported in this session API.")
+    if Path(filename).suffix.lower() not in {".csv", ".pdf"}:
+        raise HTTPException(status_code=400, detail="Only CSV and PDF statement files are supported in this session API.")
     content = await file.read(MAX_UPLOAD_BYTES + 1)
     if not content: raise HTTPException(status_code=400, detail="Uploaded file is empty.")
-    if len(content) > MAX_UPLOAD_BYTES: raise HTTPException(status_code=413, detail="Uploaded file exceeds the 10 MB limit.")
+    if len(content) > MAX_UPLOAD_BYTES: raise HTTPException(status_code=413, detail="Uploaded file exceeds the 50 MB limit.")
     return content, filename
 
 

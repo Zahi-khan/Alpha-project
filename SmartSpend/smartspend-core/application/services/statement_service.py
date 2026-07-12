@@ -17,6 +17,7 @@ from application.errors.validation_error import ValidationError
 from intelligence.pipeline.pipeline import EnrichmentPipeline
 from memory.memory_store import MemoryStore
 from parsers.csv_parser import dataframe_to_transactions
+from parsers.pdf_parser import pdf_bytes_to_transactions
 from reasoning.explainability_graph import ExplainabilityGraph
 
 
@@ -29,13 +30,13 @@ class StatementService:
         self._fingerprints: set[str] = set()
 
     def preview_statement(self, file_bytes: bytes, filename: str) -> dict:
-        transactions = self._parse_csv(file_bytes, filename)
+        transactions = self._parse_statement(file_bytes, filename)
         enriched = [self._pipeline.run(self._with_id(transaction)) for transaction in transactions]
         return {"source_filename": Path(filename).name, "total_rows": len(transactions), "data": [transaction_dto(item) for item in enriched]}
 
     def import_statement(self, file_bytes: bytes, filename: str) -> dict:
         started_at = datetime.utcnow()
-        transactions = self._parse_csv(file_bytes, filename)
+        transactions = self._parse_statement(file_bytes, filename)
         accepted, duplicates, warnings, ids = 0, 0, [], []
         for transaction in transactions:
             transaction = self._with_id(transaction)
@@ -65,12 +66,15 @@ class StatementService:
         return self._imports.get(import_id)
 
     @staticmethod
-    def _parse_csv(file_bytes: bytes, filename: str):
-        if not filename or not filename.lower().endswith(".csv"):
-            raise ValidationError("Only CSV statement files are supported.")
+    def _parse_statement(file_bytes: bytes, filename: str):
+        suffix = Path(filename or "").suffix.lower()
+        if suffix not in {".csv", ".pdf"}:
+            raise ValidationError("Only CSV and PDF statement files are supported.")
         if not file_bytes:
             raise ValidationError("Statement file is empty.")
         try:
+            if suffix == ".pdf":
+                return pdf_bytes_to_transactions(file_bytes)
             return dataframe_to_transactions(pd.read_csv(BytesIO(file_bytes)))
         except ValueError as error:
             raise ValidationError(str(error)) from error
