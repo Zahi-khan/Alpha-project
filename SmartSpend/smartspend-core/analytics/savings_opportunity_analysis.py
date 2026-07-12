@@ -6,6 +6,7 @@ from analytics.core.analytics_context import AnalyticsContext
 from intelligence.core.insight import FinancialInsight
 from intelligence.core.insight_type import InsightType
 from query.grouping.category import CategoryGrouping
+from analytics.spending_policy import is_essential_category
 
 
 class SavingsOpportunityAnalysis:
@@ -17,7 +18,10 @@ class SavingsOpportunityAnalysis:
         rows = [row for row in context.query_result.rows if row.group and isinstance(row.values.get("sum"), Decimal)]
         if not rows:
             return
-        top = min(rows, key=lambda row: row.values["sum"])
+        discretionary = [row for row in rows if not is_essential_category(str(row.group))]
+        if not discretionary:
+            return
+        top = min(discretionary, key=lambda row: row.values["sum"])
         expense = abs(top.values["sum"])
         potential = expense * Decimal("0.10")
         context.add_insight(FinancialInsight(
