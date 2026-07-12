@@ -9,7 +9,7 @@ def format_currency(value: Decimal, currency: str = "INR", compact: bool = False
     if compact and currency == "INR" and amount >= Decimal("100000"):
         return f"{sign}₹{(amount / Decimal('100000')):.1f}L"
     if currency == "INR":
-        text = f"{amount:,.2f}".rstrip("0").rstrip(".")
+        text = f"{amount:.2f}".rstrip("0").rstrip(".")
         whole, *fraction = text.split(".")
         if len(whole) > 3:
             tail, head = whole[-3:], whole[:-3]

@@ -6,12 +6,15 @@ from analytics.core.analytics_context import AnalyticsContext
 from analytics.core.baselines import BaselineService
 from analytics.core.insight import FinancialInsight
 from analytics.core.insight_type import InsightType
+from query.grouping.month import MonthGrouping
 
 
 class TrendAnalysis:
     name = "trends"
 
     def analyze(self, context: AnalyticsContext) -> None:
+        if not isinstance(getattr(context.supporting_query, "group_by", None), MonthGrouping):
+            return
         rows = [row for row in context.query_result.rows if isinstance(row.values.get("sum"), Decimal)]
         if len(rows) < 2:
             return
@@ -22,8 +25,8 @@ class TrendAnalysis:
         direction = "increased" if change > 0 else "decreased" if change < 0 else "remained stable"
         context.add_insight(FinancialInsight(
             InsightType.TREND,
-            f"Spending {direction}",
-            f"Grouped spending changed by {abs(change):.1f}% from {first.group} to {last.group}.",
+            f"Net cash flow {direction}",
+            f"Net cash flow changed by {abs(change):.1f}% from {first.group} to {last.group}.",
             severity="medium" if abs(change) >= 20 else "informational",
             confidence=0.85,
             supporting_evidence=(f"{first.group}: {first.values['sum']}; {last.group}: {last.values['sum']}.",),
