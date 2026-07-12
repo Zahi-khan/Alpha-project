@@ -72,7 +72,9 @@ class StatementService:
             raise ValidationError("Statement file is empty.")
         try:
             return dataframe_to_transactions(pd.read_csv(BytesIO(file_bytes)))
-        except (ValueError, pd.errors.ParserError) as error:
+        except ValueError as error:
+            raise ValidationError(str(error)) from error
+        except pd.errors.ParserError as error:
             raise ProcessingError("Unable to parse the CSV statement.") from error
 
     @staticmethod
