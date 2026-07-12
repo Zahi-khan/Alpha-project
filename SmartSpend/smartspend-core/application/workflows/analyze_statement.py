@@ -8,6 +8,7 @@ from query.grouping.category import CategoryGrouping
 from query.grouping.merchant import MerchantGrouping
 from query.grouping.month import MonthGrouping
 from query.grouping.transaction_type import TransactionTypeGrouping
+from query.grouping.merchant_month import MerchantMonthGrouping
 from query.filters.amount_filter import AmountFilter
 from query.metrics.count import CountMetric
 from query.metrics.sum import SumMetric
@@ -24,6 +25,7 @@ class AnalyzeStatementWorkflow:
                 FinancialQueryBuilder().where(AmountFilter(maximum=Decimal("-0.01"))).group(CategoryGrouping()).metric(SumMetric()).metric(CountMetric()).build(),
                 FinancialQueryBuilder().where(AmountFilter(maximum=Decimal("-0.01"))).group(MerchantGrouping()).metric(SumMetric()).metric(CountMetric()).build(),
                 FinancialQueryBuilder().group(TransactionTypeGrouping()).metric(SumMetric()).metric(CountMetric()).build(),
+                FinancialQueryBuilder().where(AmountFilter(maximum=Decimal("-0.01"))).group(MerchantMonthGrouping()).metric(SumMetric()).metric(CountMetric()).build(),
             )
             query_results = [session.container.query_service.execute(query) for query in queries]
             insights = [

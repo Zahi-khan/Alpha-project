@@ -14,3 +14,4 @@ class InsightType(str, Enum):
     FINANCIAL_HEALTH = "financial_health"
     RISK = "risk"
     FORECAST = "forecast"
+    SAVINGS = "savings"
