@@ -22,6 +22,24 @@ class MerchantResolutionStage(EnrichmentStage):
         self._matchers = matchers
 
     def enrich(self, context: EnrichmentContext) -> EnrichmentContext:
+        supplied_vendor = str(context.transaction.metadata.get("vendor", "")).strip()
+        if supplied_vendor:
+            merchant = Merchant(
+                id=f"source_vendor:{_identifier(supplied_vendor)}",
+                canonical_name=supplied_vendor,
+                aliases=[supplied_vendor],
+                metadata={"source": "statement_vendor"},
+            )
+            context.resolved_merchant = merchant
+            context.add_evidence(
+                Evidence(
+                    EvidenceType.MERCHANT_MATCH,
+                    f'Statement vendor "{supplied_vendor}" was used as the merchant.',
+                    source="statement_vendor",
+                    score=0.95,
+                )
+            )
+            return context
         description = context.normalized_description or context.transaction.description
         candidates = (description, normalize_merchant(description))
         for matcher in self._matchers:
@@ -41,3 +59,7 @@ class MerchantResolutionStage(EnrichmentStage):
                 return context
         context.warnings.append("Merchant could not be resolved.")
         return context
+
+
+def _identifier(value: str) -> str:
+    return "-".join("".join(character if character.isalnum() else " " for character in value.casefold()).split())

@@ -107,7 +107,7 @@ def download_report(session_id: str, manager=Depends(get_session_manager)):
     try:
         session = manager.get(session_id)
         if session.report_path is None or not session.report_path.exists():
-            raise HTTPException(status_code=404, detail="Report has not been generated.")
+            GenerateReportWorkflow().generate(session)
         FinalizeSessionWorkflow(manager).finalize(session_id)
         return FileResponse(session.report_path, media_type="application/pdf", filename="smartspend-financial-overview.pdf")
     except ApplicationError as error: _error(error)

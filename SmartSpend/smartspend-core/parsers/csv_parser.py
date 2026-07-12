@@ -44,11 +44,17 @@ def dataframe_to_transactions(df: pd.DataFrame):
         except (TypeError, ValueError):
             continue
 
+        vendor = _source_value(row, "source_vendor")
         transaction = Transaction(
             date=transaction_date,
-            description=str(row["description"]).strip(),
+            description=vendor or str(row["description"]).strip(),
             amount=amount,
-            transaction_type="income" if amount > 0 else "expense"
+            transaction_type="income" if amount > 0 else "expense",
+            metadata={
+                key.removeprefix("source_"): value
+                for key in ("source_description", "source_vendor", "source_category", "source_mode", "source_type", "source_transaction_id", "source_balance")
+                if (value := _source_value(row, key)) is not None
+            },
         )
 
         transactions.append(transaction)
@@ -67,6 +73,13 @@ def _canonicalize_columns(df: pd.DataFrame) -> pd.DataFrame:
         "date": df[mapping["date"]],
         "description": df[mapping["description"]],
     })
+    _copy_source_column(canonical, df, "source_description", mapping["description"])
+    _copy_source_column(canonical, df, "source_vendor", _find_column(df, ("vendor", "merchant", "payee")))
+    _copy_source_column(canonical, df, "source_category", _find_column(df, ("category", "spending category")))
+    _copy_source_column(canonical, df, "source_mode", mapping.get("mode"))
+    _copy_source_column(canonical, df, "source_type", mapping.get("transaction_type"))
+    _copy_source_column(canonical, df, "source_transaction_id", _find_column(df, ("txnid", "transaction id", "reference number")))
+    _copy_source_column(canonical, df, "source_balance", mapping.get("balance"))
     debit_column = _find_column(df, ("debit", "withdrawal"))
     credit_column = _find_column(df, ("credit", "deposit"))
 
@@ -98,6 +111,18 @@ def _canonicalize_columns(df: pd.DataFrame) -> pd.DataFrame:
 def _find_column(df: pd.DataFrame, aliases: tuple[str, ...]) -> str | None:
     columns = {str(column).strip().lower(): column for column in df.columns}
     return next((columns[alias] for alias in aliases if alias in columns), None)
+
+
+def _copy_source_column(canonical: pd.DataFrame, source: pd.DataFrame, target: str, column: str | None) -> None:
+    if column is not None:
+        canonical[target] = source[column]
+
+
+def _source_value(row, key: str) -> str | None:
+    if key not in row or pd.isna(row[key]):
+        return None
+    value = str(row[key]).strip()
+    return value or None
 
 
 def _parse_amount(value) -> Decimal:
