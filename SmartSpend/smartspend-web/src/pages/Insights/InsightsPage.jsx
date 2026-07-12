@@ -1,2 +1,8 @@
-import { useQuery } from "@tanstack/react-query"; import { Link,useParams } from "react-router-dom"; import { getInsights } from "../../app/api/sessions"; import InsightCard from "../../components/ui/InsightCard"; import styles from "./InsightsPage.module.css";
-export default function InsightsPage(){const {sessionId}=useParams();const {data,error,isLoading}=useQuery({queryKey:["insights",sessionId],queryFn:()=>getInsights(sessionId)});if(isLoading)return <main className="container page">Loading insights…</main>;if(error)return <main className="container page">{error.message}</main>;return <main className={`container page ${styles.page}`}><Link to={`/session/${sessionId}/dashboard`}>← Overview</Link><h1 className="h1">Financial insights</h1><div className={styles.grid}>{data.data.map(insight=><InsightCard key={insight.id} insight={insight} sessionId={sessionId}/>)}</div></main>}
+import { useQuery } from "@tanstack/react-query";
+import { Link, useParams } from "react-router-dom";
+import { getInsights } from "../../app/api/sessions";
+import InsightCard from "../../components/ui/InsightCard";
+import SiteNav from "../../components/navigation/SiteNav";
+import styles from "./InsightsPage.module.css";
+
+export default function InsightsPage(){const {sessionId}=useParams();const {data,error,isLoading}=useQuery({queryKey:["insights",sessionId],queryFn:()=>getInsights(sessionId)});if(isLoading)return <><SiteNav sessionId={sessionId}/><main className="container page">Loading insights…</main></>;if(error)return <><SiteNav sessionId={sessionId}/><main className="container page">{error.message}</main></>;return <><SiteNav sessionId={sessionId}/><main id="main-content" className={`container page ${styles.page}`}><Link to={`/session/${sessionId}/dashboard`}>← Overview</Link><h1 className="h1">Financial insights</h1><div className={styles.grid}>{data.data.map(insight=><InsightCard key={insight.id} insight={insight} sessionId={sessionId}/>)}</div></main></>}
