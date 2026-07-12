@@ -22,6 +22,8 @@ class MerchantResolutionStage(EnrichmentStage):
         self._matchers = matchers
 
     def enrich(self, context: EnrichmentContext) -> EnrichmentContext:
+        if context.metadata.get("merchant_visibility") == "not_visible":
+            return context
         supplied_vendor = str(context.transaction.metadata.get("vendor", "")).strip()
         if supplied_vendor:
             merchant = Merchant(

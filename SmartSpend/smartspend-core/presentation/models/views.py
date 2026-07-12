@@ -18,7 +18,7 @@ class InsightView:
 
 @slotted_dataclass(frozen=True)
 class TransactionView:
-    id: str | None; date: str | None; formatted_date: str | None; merchant_name: str | None; fallback_description: str; original_description: str | None; category_name: str | None; spending_type: str; industry_name: str | None; payment_name: str | None; source_type: str | None; statement_reference: str | None; balance: str | None; amount: Any; formatted_amount: str; direction: str; confidence_label: str; warning_flags: tuple[str, ...] = (); review_required: bool = False
+    id: str | None; date: str | None; formatted_date: str | None; merchant_name: str | None; fallback_description: str; original_description: str | None; category_name: str | None; spending_type: str; industry_name: str | None; payment_name: str | None; payment_initiator: str | None; counterparty: str | None; beneficiary_vpa: str | None; payment_reference: str | None; merchant_visibility: str | None; source_type: str | None; statement_reference: str | None; balance: str | None; amount: Any; formatted_amount: str; direction: str; confidence_label: str; warning_flags: tuple[str, ...] = (); review_required: bool = False
 
 @slotted_dataclass(frozen=True)
 class ChartSeries:

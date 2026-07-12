@@ -18,6 +18,8 @@ class CategoryResolutionStage(EnrichmentStage):
     )
 
     def enrich(self, context: EnrichmentContext) -> EnrichmentContext:
+        if context.metadata.get("merchant_visibility") == "not_visible":
+            return context
         supplied_category = str(context.transaction.metadata.get("category", "")).strip()
         if supplied_category:
             context.resolved_category = Category(

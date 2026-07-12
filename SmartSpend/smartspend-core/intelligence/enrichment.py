@@ -9,6 +9,7 @@ from intelligence.stages.industry_resolution_stage import IndustryResolutionStag
 from intelligence.stages.merchant_resolution_stage import MerchantResolutionStage
 from intelligence.stages.normalization_stage import NormalizationStage
 from intelligence.stages.payment_detection_stage import PaymentDetectionStage
+from intelligence.stages.payment_context_stage import PaymentContextStage
 from intelligence.stages.recurring_detection_stage import RecurringDetectionStage
 from intelligence.stages.transaction_type_stage import TransactionTypeStage
 from knowledge.knowledge_base import KnowledgeBase
@@ -19,6 +20,7 @@ def build_enrichment_pipeline(knowledge: KnowledgeBase) -> EnrichmentPipeline:
     return EnrichmentPipeline(
         [
             NormalizationStage(),
+            PaymentContextStage(),
             MerchantResolutionStage(AliasMatcher(knowledge.find_merchant)),
             PaymentDetectionStage(),
             TransactionTypeStage(),
