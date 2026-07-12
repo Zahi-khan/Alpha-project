@@ -3,6 +3,7 @@ import HomePage from "../pages/Home/HomePage";
 import AboutPage from "../pages/About/AboutPage";
 import PrivacyPage from "../pages/Privacy/PrivacyPage";
 import HowItWorksPage from "../pages/HowItWorks/HowItWorksPage";
+import StatementTipPage from "../pages/StatementTip/StatementTipPage";
 import UploadPage from "../pages/Upload/UploadPage";
 import ProcessingPage from "../pages/Processing/ProcessingPage";
 import DashboardPage from "../pages/Dashboard/DashboardPage";
@@ -13,7 +14,7 @@ import NotFoundPage from "../pages/NotFound/NotFoundPage";
 import ScrollReveal from "../components/feedback/ScrollReveal";
 
 export default function App() {
-  return <><ScrollReveal/><a className="skipLink focus" href="#main-content">Skip to content</a><Routes>
+  return <><ScrollReveal/><Routes>
     <Route path="/" element={<HomePage />} />
     <Route path="/upload" element={<UploadPage />} />
     <Route path="/session/:sessionId/processing" element={<ProcessingPage />} />
@@ -24,6 +25,7 @@ export default function App() {
     <Route path="/about" element={<AboutPage />} />
     <Route path="/privacy" element={<PrivacyPage />} />
     <Route path="/how-it-works" element={<HowItWorksPage />} />
+    <Route path="/statement-tip" element={<StatementTipPage />} />
     <Route path="*" element={<NotFoundPage />} />
   </Routes></>;
 }
