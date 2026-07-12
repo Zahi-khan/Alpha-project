@@ -11,7 +11,7 @@ class SpendingAnalysis:
     name = "spending"
 
     def analyze(self, context: AnalyticsContext) -> None:
-        rows = [row for row in context.query_result.rows if isinstance(row.values.get("sum"), Decimal)]
+        rows = [row for row in context.query_result.rows if row.group is not None and isinstance(row.values.get("sum"), Decimal)]
         if not rows:
             return
         top = max(rows, key=lambda row: abs(row.values["sum"]))

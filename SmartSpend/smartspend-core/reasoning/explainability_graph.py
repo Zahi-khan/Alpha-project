@@ -65,6 +65,10 @@ class ExplainabilityGraph:
         walk(node_id)
         return tuple(ordered)
 
+    def node(self, node_id: str):
+        """Return one graph node for a presentation-safe explanation."""
+        return self._nodes.get(node_id)
+
     def clear(self) -> None:
         """Discard all session-owned provenance nodes and edges."""
         self._parents.clear()

@@ -11,6 +11,8 @@ class CashFlowAnalysis:
     name = "cashflow"
 
     def analyze(self, context: AnalyticsContext) -> None:
+        if any(row.group is not None for row in context.query_result.rows):
+            return
         net = context.query_result.summary.get("sum")
         if not isinstance(net, Decimal):
             return
