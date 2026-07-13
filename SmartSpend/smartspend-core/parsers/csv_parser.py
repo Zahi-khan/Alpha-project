@@ -2,13 +2,14 @@ from __future__ import annotations
 
 from io import BytesIO
 from decimal import Decimal, InvalidOperation
+import re
 from preprocessing.cleaner import clean_transactions
 
 
 import pandas as pd
 
 from models.transaction import Transaction
-from parsers.column_mapper import map_columns
+from parsers.column_mapper import map_columns, normalize
 
 REQUIRED_COLUMNS = {
     "date",
@@ -41,10 +42,10 @@ def dataframe_to_transactions(df: pd.DataFrame):
             continue
         try:
             date_value = str(row["date"]).strip()
-            transaction_date = (
-                pd.to_datetime(date_value, format="%d.%m.%Y", errors="raise")
-                if date_value.count(".") == 2
-                else pd.to_datetime(date_value, errors="raise")
+            transaction_date = pd.to_datetime(
+                date_value,
+                dayfirst=bool(re.fullmatch(r"\d{2}[./-]\d{2}[./-]\d{2,4}", date_value)),
+                errors="raise",
             ).to_pydatetime()
         except (TypeError, ValueError):
             continue
@@ -85,8 +86,8 @@ def _canonicalize_columns(df: pd.DataFrame) -> pd.DataFrame:
     _copy_source_column(canonical, df, "source_type", mapping.get("transaction_type"))
     _copy_source_column(canonical, df, "source_transaction_id", _find_column(df, ("txnid", "transaction id", "reference number")))
     _copy_source_column(canonical, df, "source_balance", mapping.get("balance"))
-    debit_column = _find_column(df, ("debit", "withdrawal"))
-    credit_column = _find_column(df, ("credit", "deposit"))
+    debit_column = _find_column(df, ("debit", "debit amount", "debit amt", "withdrawal", "withdrawal amount", "withdrawal amt"))
+    credit_column = _find_column(df, ("credit", "credit amount", "credit amt", "deposit", "deposit amount", "deposit amt"))
 
     if debit_column and credit_column:
         canonical["amount"] = df[credit_column].map(_parse_amount) - df[debit_column].map(_parse_amount)
@@ -114,8 +115,8 @@ def _canonicalize_columns(df: pd.DataFrame) -> pd.DataFrame:
 
 
 def _find_column(df: pd.DataFrame, aliases: tuple[str, ...]) -> str | None:
-    columns = {str(column).strip().lower(): column for column in df.columns}
-    return next((columns[alias] for alias in aliases if alias in columns), None)
+    columns = {normalize(column): column for column in df.columns}
+    return next((columns[normalize(alias)] for alias in aliases if normalize(alias) in columns), None)
 
 
 def _copy_source_column(canonical: pd.DataFrame, source: pd.DataFrame, target: str, column: str | None) -> None:

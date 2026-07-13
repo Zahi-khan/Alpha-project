@@ -1,9 +1,13 @@
+import re
+
+
 COLUMN_ALIASES = {
     "date": [
         "date",
         "transaction date",
         "txn date",
         "value date",
+        "value dt",
     ],
 
     "description": [
@@ -18,9 +22,17 @@ COLUMN_ALIASES = {
         "amount",
         "transaction amount",
         "withdrawal",
+        "withdrawal amount",
+        "withdrawal amt",
         "deposit",
+        "deposit amount",
+        "deposit amt",
         "debit",
+        "debit amount",
+        "debit amt",
         "credit",
+        "credit amount",
+        "credit amt",
     ],
 
     "transaction_type": [
@@ -43,7 +55,8 @@ COLUMN_ALIASES = {
 
 
 def normalize(text: str) -> str:
-    return text.strip().lower()
+    """Ignore bank-specific spaces and punctuation when matching headers."""
+    return re.sub(r"[^a-z0-9]+", "", str(text).strip().lower())
 
 
 def find_matching_column(columns, aliases):
@@ -54,8 +67,9 @@ def find_matching_column(columns, aliases):
     }
 
     for alias in aliases:
-        if alias in normalized:
-            return normalized[alias]
+        normalized_alias = normalize(alias)
+        if normalized_alias in normalized:
+            return normalized[normalized_alias]
 
     return None
 
