@@ -28,3 +28,4 @@ class AnalysisSession:
     report_path: Path | None = None
     warnings: list[str] = field(default_factory=list)
     error: str | None = None
+    pdf_password_failures: int = 0

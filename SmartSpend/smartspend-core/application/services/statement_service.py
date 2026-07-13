@@ -27,16 +27,35 @@ class StatementService:
     def __init__(self, pipeline: EnrichmentPipeline, memory: MemoryStore, graph: ExplainabilityGraph):
         self._pipeline, self._memory, self._graph = pipeline, memory, graph
         self._imports: dict[str, dict] = {}
+        self._previews: dict[str, tuple[str, tuple]] = {}
         self._fingerprints: set[str] = set()
 
-    def preview_statement(self, file_bytes: bytes, filename: str) -> dict:
-        transactions = self._parse_statement(file_bytes, filename)
+    def preview_statement(self, file_bytes: bytes, filename: str, password: str | None = None) -> dict:
+        transactions = self._parse_statement(file_bytes, filename, password)
         enriched = [self._pipeline.run(self._with_id(transaction)) for transaction in transactions]
-        return {"source_filename": Path(filename).name, "total_rows": len(transactions), "data": [transaction_dto(item) for item in enriched]}
+        preview_id = f"preview_{uuid4().hex}"
+        self._previews.clear()
+        self._previews[preview_id] = (Path(filename).name, tuple(transactions))
+        return {
+            "preview_id": preview_id,
+            "source_filename": Path(filename).name,
+            "total_rows": len(transactions),
+            "data": [transaction_dto(item) for item in enriched],
+        }
 
-    def import_statement(self, file_bytes: bytes, filename: str) -> dict:
+    def import_statement(self, file_bytes: bytes, filename: str, password: str | None = None) -> dict:
+        transactions = self._parse_statement(file_bytes, filename, password)
+        return self._import_transactions(transactions, filename)
+
+    def import_preview(self, preview_id: str) -> dict:
+        preview = self._previews.pop(preview_id, None)
+        if preview is None:
+            raise ValidationError("Statement preview not found or already used.")
+        filename, transactions = preview
+        return self._import_transactions(transactions, filename)
+
+    def _import_transactions(self, transactions, filename: str) -> dict:
         started_at = datetime.utcnow()
-        transactions = self._parse_statement(file_bytes, filename)
         accepted, duplicates, warnings, ids = 0, 0, [], []
         for transaction in transactions:
             transaction = self._with_id(transaction)
@@ -53,7 +72,8 @@ class StatementService:
             warnings.extend(enriched.warnings)
         import_id = f"import_{uuid4().hex}"
         result = {
-            "import_id": import_id, "source_filename": Path(filename).name, "detected_format": "csv",
+            "import_id": import_id, "source_filename": Path(filename).name,
+            "detected_format": Path(filename).suffix.lower().lstrip("."),
             "detected_bank": None, "total_rows": len(transactions), "accepted_rows": accepted,
             "rejected_rows": 0, "duplicate_rows": duplicates, "enriched_transaction_ids": tuple(ids),
             "warnings": tuple(dict.fromkeys(warnings)), "errors": (), "started_at": started_at,
@@ -65,8 +85,11 @@ class StatementService:
     def get_import_status(self, import_id: str) -> dict | None:
         return self._imports.get(import_id)
 
+    def clear_pending_previews(self) -> None:
+        self._previews.clear()
+
     @staticmethod
-    def _parse_statement(file_bytes: bytes, filename: str):
+    def _parse_statement(file_bytes: bytes, filename: str, password: str | None = None):
         suffix = Path(filename or "").suffix.lower()
         if suffix not in {".csv", ".pdf"}:
             raise ValidationError("Only CSV and PDF statement files are supported.")
@@ -74,7 +97,7 @@ class StatementService:
             raise ValidationError("Statement file is empty.")
         try:
             if suffix == ".pdf":
-                return pdf_bytes_to_transactions(file_bytes)
+                return pdf_bytes_to_transactions(file_bytes, password)
             return dataframe_to_transactions(pd.read_csv(BytesIO(file_bytes)))
         except ValueError as error:
             raise ValidationError(str(error)) from error

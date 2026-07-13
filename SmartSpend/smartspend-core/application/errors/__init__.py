@@ -3,6 +3,21 @@
 from application.errors.application_error import ApplicationError
 from application.errors.not_found_error import NotFoundError
 from application.errors.processing_error import ProcessingError
+from application.errors.pdf_password_error import (
+    InvalidPdfPasswordError,
+    PdfPasswordAttemptLimitError,
+    PdfPasswordRequiredError,
+    UnsupportedPdfEncryptionError,
+)
 from application.errors.validation_error import ValidationError
 
-__all__ = ["ApplicationError", "NotFoundError", "ProcessingError", "ValidationError"]
+__all__ = [
+    "ApplicationError",
+    "InvalidPdfPasswordError",
+    "NotFoundError",
+    "PdfPasswordAttemptLimitError",
+    "PdfPasswordRequiredError",
+    "ProcessingError",
+    "UnsupportedPdfEncryptionError",
+    "ValidationError",
+]

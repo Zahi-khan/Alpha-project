@@ -1,1 +1,23 @@
-.page{max-width:760px;display:grid;gap:var(--space-6)}.page>div{display:grid;gap:var(--space-3)}.eyebrow{color:var(--color-accent-primary);font-weight:700}.actions{display:flex;gap:var(--space-3);margin-top:var(--space-5)}.preview{margin-top:var(--space-4);color:var(--color-success)}.error{margin-top:var(--space-4);color:var(--color-critical)}.locked{display:flex;justify-content:space-between;align-items:center;gap:var(--space-4);padding:var(--space-4);border-top:1px solid var(--color-border-subtle);border-bottom:1px solid var(--color-border-subtle);color:var(--color-text-muted);font-size:.92rem}.locked button{padding:8px 13px}@media(max-width:560px){.locked{align-items:start;flex-direction:column}}
+.page{max-width:760px;display:grid;gap:var(--space-6)}
+.page>div{display:grid;gap:var(--space-3)}
+.eyebrow{color:var(--color-accent-primary);font-weight:700}
+.actions{display:flex;gap:var(--space-3);margin-top:var(--space-5)}
+.preview{margin-top:var(--space-4);color:var(--color-success)}
+.error{margin-top:var(--space-4);color:var(--color-critical)}
+.passwordBox{display:grid;gap:var(--space-3);margin-top:var(--space-5);padding:var(--space-4);border:1px solid var(--color-border-strong);border-radius:var(--radius-md);background:var(--color-bg-subtle)}
+.passwordBox div{display:grid;gap:var(--space-1)}
+.passwordBox label{font-family:Oswald,Arial,sans-serif;font-weight:650}
+.passwordBox p,.passwordBox small{color:var(--color-text-muted)}
+.passwordBox p{font-size:.95rem}
+.passwordBox small{font-size:.82rem}
+.passwordBox input{width:100%;min-height:48px;padding:10px 12px;border:1px solid var(--color-border-strong);border-radius:var(--radius-sm);background:var(--color-bg-elevated);color:var(--color-text-primary);font:inherit}
+.passwordBox input:focus-visible{outline:3px solid color-mix(in srgb,var(--color-accent-primary) 55%,white);outline-offset:2px}
+.passwordBox button{justify-self:start}
+.locked{padding:var(--space-4);border-top:1px solid var(--color-border-subtle);border-bottom:1px solid var(--color-border-subtle);color:var(--color-text-muted);font-size:.96rem}
+.locked strong{color:var(--color-text-primary)}
+
+@media(max-width:560px){
+  .actions{align-items:stretch;flex-direction:column}
+  .actions button,.passwordBox button{width:100%}
+  .passwordBox button{justify-self:stretch}
+}

@@ -1,5 +1,7 @@
 """End-to-end anonymous statement analysis workflow."""
 
+from __future__ import annotations
+
 from application.dto.serializers import transaction_dto
 from decimal import Decimal
 from application.sessions.session_status import SessionStatus
@@ -15,10 +17,21 @@ from query.metrics.sum import SumMetric
 
 
 class AnalyzeStatementWorkflow:
-    def analyze(self, session, file_bytes: bytes, filename: str) -> dict:
+    def analyze(
+        self,
+        session,
+        file_bytes: bytes | None = None,
+        filename: str | None = None,
+        preview_id: str | None = None,
+    ) -> dict:
         session.status = SessionStatus.PROCESSING
         try:
-            imported = session.container.statement_service.import_statement(file_bytes, filename)
+            if preview_id:
+                imported = session.container.statement_service.import_preview(preview_id)
+            elif file_bytes is not None and filename is not None:
+                imported = session.container.statement_service.import_statement(file_bytes, filename)
+            else:
+                raise ValueError("A statement file or preview is required.")
             queries = (
                 FinancialQueryBuilder().metric(SumMetric()).metric(CountMetric()).build(),
                 FinancialQueryBuilder().group(MonthGrouping()).metric(SumMetric()).metric(CountMetric()).build(),

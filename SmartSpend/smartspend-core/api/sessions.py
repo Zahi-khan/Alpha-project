@@ -1,12 +1,19 @@
 """Session-oriented HTTP API for anonymous, temporary statement analysis."""
 
-from pathlib import Path
+from __future__ import annotations
 
-from fastapi import APIRouter, Depends, File, HTTPException, UploadFile
+from pathlib import Path
+from typing import Optional
+
+from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile
 from fastapi.responses import FileResponse
 
 from api.dependencies import get_session_manager
 from application.errors.application_error import ApplicationError
+from application.errors.pdf_password_error import (
+    InvalidPdfPasswordError,
+    PdfPasswordAttemptLimitError,
+)
 from application.sessions.session_status import SessionStatus
 from application.workflows.analyze_statement import AnalyzeStatementWorkflow
 from application.workflows.generate_report import GenerateReportWorkflow
@@ -14,6 +21,7 @@ from application.workflows.finalize_session import FinalizeSessionWorkflow
 
 router = APIRouter(prefix="/sessions", tags=["sessions"])
 MAX_UPLOAD_BYTES = 50 * 1024 * 1024
+MAX_PDF_PASSWORD_FAILURES = 5
 
 
 @router.post("")
@@ -32,10 +40,47 @@ async def preview(session_id: str, file: UploadFile = File(...), manager=Depends
         _error(error)
 
 
-@router.post("/{session_id}/analyze")
-async def analyze(session_id: str, file: UploadFile = File(...), manager=Depends(get_session_manager)):
+@router.post("/{session_id}/preview/unlock")
+async def unlock_and_preview(
+    session_id: str,
+    file: UploadFile = File(...),
+    password: str = Form(...),
+    manager=Depends(get_session_manager),
+):
+    """Unlock and parse an encrypted PDF entirely within this request."""
     try:
         session = manager.get(session_id)
+        if session.pdf_password_failures >= MAX_PDF_PASSWORD_FAILURES:
+            raise PdfPasswordAttemptLimitError("Too many incorrect password attempts for this session.")
+        content, filename = await _read_upload(file)
+        if Path(filename).suffix.lower() != ".pdf":
+            raise HTTPException(status_code=400, detail="Password unlock is available only for PDF statements.")
+        try:
+            result = session.container.statement_service.preview_statement(content, filename, password)
+        except InvalidPdfPasswordError:
+            session.pdf_password_failures += 1
+            if session.pdf_password_failures >= MAX_PDF_PASSWORD_FAILURES:
+                raise PdfPasswordAttemptLimitError("Too many incorrect password attempts for this session.")
+            raise
+        session.pdf_password_failures = 0
+        return result
+    except ApplicationError as error:
+        _error(error)
+
+
+@router.post("/{session_id}/analyze")
+async def analyze(
+    session_id: str,
+    file: Optional[UploadFile] = File(default=None),
+    preview_id: Optional[str] = Form(default=None),
+    manager=Depends(get_session_manager),
+):
+    try:
+        session = manager.get(session_id)
+        if preview_id:
+            return AnalyzeStatementWorkflow().analyze(session, preview_id=preview_id)
+        if file is None:
+            raise HTTPException(status_code=400, detail="A statement file or preview ID is required.")
         content, filename = await _read_upload(file)
         return AnalyzeStatementWorkflow().analyze(session, content, filename)
     except ApplicationError as error:

@@ -52,6 +52,7 @@ class SessionManager:
             shutil.rmtree(session.root_path, ignore_errors=True)
         session.analysis_result.clear()
         session.warnings.clear()
+        session.container.statement_service.clear_pending_previews()
         session.container.memory_store.clear()
         session.container.explainability_graph.clear()
         session.status = SessionStatus.EXPIRED if expired else SessionStatus.DELETED

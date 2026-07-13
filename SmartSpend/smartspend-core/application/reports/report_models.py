@@ -13,6 +13,8 @@ from models._dataclasses import slotted_dataclass
 class FinancialReport:
     generated_at: datetime
     summary: dict[str, Any]
+    metrics: tuple[dict, ...] = ()
+    charts: tuple[dict, ...] = ()
     insights: tuple[dict, ...] = ()
     conclusions: tuple[dict, ...] = ()
     warnings: tuple[str, ...] = ()
